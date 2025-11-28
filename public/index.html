@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e1b4b" />
+    <meta
+      name="description"
+      content="Peer Learning Session Manager - 100% Offline First MERN App"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="NavPeer" />
+    
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    
+    <title>NavPeer - Peer Learning Sessions</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!-- Dev-only: proactively unregister any existing service workers and clear caches
+         to prevent stale bundles (IndexedDB/Dexie code) from being served by an old SW. -->
+    <script>
+      (function () {
+        try {
+          var isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+          var isDevPort = String(location.port) === '3000';
+          if ('serviceWorker' in navigator && (isLocal || isDevPort)) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              regs.forEach(function (r) { r.unregister().catch(function(){}); });
+            }).catch(function(){});
+            if (window.caches && window.caches.keys) {
+              window.caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (k) { return window.caches.delete(k).catch(function(){}); }));
+              }).catch(function(){});
+            }
+          }
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
+  </body>
+</html>

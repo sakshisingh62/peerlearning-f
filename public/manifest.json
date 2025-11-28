@@ -1,0 +1,32 @@
+{
+  "name": "NavPeer - Peer Learning Sessions",
+  "short_name": "NavPeer",
+  "description": "Offline-first peer learning session manager. Students teach students.",
+  "start_url": "./",
+  "display": "standalone",
+  "theme_color": "#1e1b4b",
+  "background_color": "#0f172a",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231e1b4b' width='192' height='192'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='%23a855f7'>📚</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231e1b4b' width='192' height='192'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='%23a855f7'>📚</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%231e1b4b' width='540' height='720'/><text x='270' y='360' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='%23a855f7'>NavPeer</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml"
+    }
+  ]
+}

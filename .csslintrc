@@ -1,0 +1,11 @@
+{
+  "lint": {
+    "compatiblevendorprefixes": "warning",
+    "validProperties": [
+      "composes",
+      "lines"
+    ],
+    "ieunit": "error",
+    "unknownAtRules": "ignore"
+  }
+}

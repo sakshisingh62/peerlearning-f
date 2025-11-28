@@ -1,0 +1,23 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "css.lint.validProperties": [
+    "composes"
+  ],
+  "editor.defaultFormatter": "vscode.css-language-features",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "postcss.validate": false,
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass"
+  ],
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/node_modules": true
+  }
+}
