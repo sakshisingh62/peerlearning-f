@@ -39,32 +39,32 @@ function ProfilePage({ currentUser }) {
           setEditedName(latestUser.name);
         }
 
-          // If we're online, and this is a Google-authenticated account (or the local record
-          // lacks a profilePicture), try to fetch the authoritative user object from the server
-          // (the backend stores the Google `picture` URL). Update local state and sync local DB.
-          if (navigator.onLine && currentUser) {
-            const shouldRefreshFromServer = (currentUser?.authProvider === 'google') || !latestUser?.profilePicture;
-            if (shouldRefreshFromServer) {
-              try {
-                const serverUser = await userAPI.getUser(currentUser.userId);
-                if (serverUser) {
-                  // prefer server-side fields (especially profilePicture and authProvider)
-                  setUpdatedUser(serverUser);
-                  setEditedName(serverUser.name || editedName);
-                  // sync to local IndexedDB/local userDB so subsequent offline loads reflect the change
-                  try {
-                    await userDB.upsertUser(serverUser);
-                  } catch (upsertErr) {
-                    // non-fatal: log and continue
-                    console.warn('ProfilePage: failed to sync server user to local DB', upsertErr);
-                  }
-                  console.log('ProfilePage: refreshed user from server', serverUser);
+        // If we're online, and this is a Google-authenticated account (or the local record
+        // lacks a profilePicture), try to fetch the authoritative user object from the server
+        // (the backend stores the Google `picture` URL). Update local state and sync local DB.
+        if (navigator.onLine && currentUser) {
+          const shouldRefreshFromServer = (currentUser?.authProvider === 'google') || !latestUser?.profilePicture;
+          if (shouldRefreshFromServer) {
+            try {
+              const serverUser = await userAPI.getUser(currentUser.userId);
+              if (serverUser) {
+                // prefer server-side fields (especially profilePicture and authProvider)
+                setUpdatedUser(serverUser);
+                setEditedName(serverUser.name || editedName);
+                // sync to local IndexedDB/local userDB so subsequent offline loads reflect the change
+                try {
+                  await userDB.upsertUser(serverUser);
+                } catch (upsertErr) {
+                  // non-fatal: log and continue
+                  console.warn('ProfilePage: failed to sync server user to local DB', upsertErr);
                 }
-              } catch (err) {
-                console.warn('ProfilePage: could not fetch server user', err);
+                console.log('ProfilePage: refreshed user from server', serverUser);
               }
+            } catch (err) {
+              console.warn('ProfilePage: could not fetch server user', err);
             }
           }
+        }
       }
     } catch (error) {
       console.error('Error loading profile data:', error);
@@ -88,10 +88,10 @@ function ProfilePage({ currentUser }) {
         ...updatedUser,
         name: editedName.trim()
       });
-      
+
       const refreshedUser = await userDB.getUser(currentUser.userId);
       setUpdatedUser(refreshedUser);
-      console.log("setUpdateUser",refreshedUser)
+      console.log("setUpdateUser", refreshedUser)
       setEditMode(false);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -125,6 +125,39 @@ function ProfilePage({ currentUser }) {
     );
   }
 
+  //Adding
+  // Determine if user is Google-authenticated
+  const isGoogleUser =
+    updatedUser?.authProvider === 'google' ||
+    currentUser?.authProvider === 'google';
+
+  // Safely handle Google photo URLs (autosizing)
+  const getGooglePhoto = (url) => {
+    if (!url) return '';
+    if (!url.startsWith('https://lh3.googleusercontent.com')) return url;
+    return url.includes('=') ? url : `${url}=s200-c`;
+  };
+
+  // Final avatar URL (shared by src & onError)
+  const avatarUrl = (() => {
+    if (isGoogleUser) {
+      return (
+        getGooglePhoto(currentUser?.photoURL) ||
+        getGooglePhoto(currentUser?.profilePicture) ||
+        getGooglePhoto(updatedUser?.profilePicture) ||
+        ''
+      );
+    }
+
+    return (
+      updatedUser?.profilePicture ||
+      currentUser?.profilePicture ||
+      currentUser?.photoURL ||
+      `https://i.pravatar.cc/150?u=${currentUser?.userId || currentUser?.email}`
+    );
+  })();
+
+
   // No animation variants — simplified without framer-motion
 
   return (
@@ -136,25 +169,22 @@ function ProfilePage({ currentUser }) {
             {/* Avatar */}
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-400 shadow-lg">
               <img
-                src={(() => {
-                  const isGoogleUser = (updatedUser?.authProvider === 'google') || (currentUser?.authProvider === 'google');
-                  if (isGoogleUser) {
-                    return (updatedUser && updatedUser.profilePicture) || currentUser?.profilePicture || currentUser?.photoURL || '';
-                  }
-                  return (updatedUser && updatedUser.profilePicture) || currentUser?.profilePicture || currentUser?.photoURL || `https://i.pravatar.cc/150?u=${currentUser?.userId || currentUser?.email}`;
-                })()}
-                alt={updatedUser?.name || currentUser?.name || 'User'}
+                src={avatarUrl}
+                alt={updatedUser?.name || currentUser?.name}
                 className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  const isGoogleUser = (updatedUser?.authProvider === 'google') || (currentUser?.authProvider === 'google');
-                  if (isGoogleUser) {
-                    e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23374151"/><text x="50%" y="50%" fill="%239CA3AF" font-size="36" text-anchor="middle" dominant-baseline="middle">?</text></svg>';
-                  } else {
-                    e.currentTarget.src = `https://i.pravatar.cc/150?u=${currentUser?.userId || currentUser?.email}`;
-                  }
+
+                  const fallback = isGoogleUser
+                    ? 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23374151"/><text x="50%" y="50%" fill="%239CA3AF" font-size="36" text-anchor="middle" dominant-baseline="middle">?</text></svg>'
+                    : `https://i.pravatar.cc/150?u=${currentUser?.userId || currentUser?.email}`;
+
+                  e.currentTarget.src = fallback;
                 }}
               />
+
+
             </div>
 
             {/* Profile Info */}
@@ -204,7 +234,7 @@ function ProfilePage({ currentUser }) {
 
               {/* Quick Stats */}
               <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-                <div 
+                <div
                   className="text-center bg-purple-500/10 px-4 py-3 rounded-lg border border-purple-500/20"
                 >
                   <p className="text-3xl font-bold text-purple-400">
@@ -212,7 +242,7 @@ function ProfilePage({ currentUser }) {
                   </p>
                   <p className="text-gray-400 text-sm">Peer Points</p>
                 </div>
-                <div 
+                <div
                   className="text-center bg-blue-500/10 px-4 py-3 rounded-lg border border-blue-500/20"
                 >
                   <p className="text-3xl font-bold text-blue-400">
@@ -220,7 +250,7 @@ function ProfilePage({ currentUser }) {
                   </p>
                   <p className="text-gray-400 text-sm">Sessions Created</p>
                 </div>
-                <div 
+                <div
                   className="text-center bg-green-500/10 px-4 py-3 rounded-lg border border-green-500/20"
                 >
                   <p className="text-3xl font-bold text-green-400">
@@ -228,7 +258,7 @@ function ProfilePage({ currentUser }) {
                   </p>
                   <p className="text-gray-400 text-sm">Sessions Attended</p>
                 </div>
-                <div 
+                <div
                   className="text-center bg-yellow-500/10 px-4 py-3 rounded-lg border border-yellow-500/20"
                 >
                   <p className="text-3xl font-bold text-yellow-400">
@@ -239,7 +269,7 @@ function ProfilePage({ currentUser }) {
               </div>
             </div>
           </div>
-  </div>
+        </div>
 
         {/* Badges Section */}
         <div className="glass rounded-2xl p-8 border border-purple-500/20 mb-8">
@@ -248,7 +278,7 @@ function ProfilePage({ currentUser }) {
             <h2 className="text-2xl font-bold text-white">Badges & Achievements</h2>
           </div>
 
-            {badges.length > 0 ? (
+          {badges.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {badges.map((badge, index) => (
                 <div
@@ -271,7 +301,7 @@ function ProfilePage({ currentUser }) {
               </p>
             </div>
           )}
-  </div>
+        </div>
 
         {/* Certificates Section */}
         <div className="glass rounded-2xl p-8 border border-purple-500/20 mb-8">
@@ -280,7 +310,7 @@ function ProfilePage({ currentUser }) {
             <h2 className="text-2xl font-bold text-white">Certificates</h2>
           </div>
 
-            {certificates.length > 0 ? (
+          {certificates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {certificates.map((cert, index) => (
                 <div
@@ -314,7 +344,7 @@ function ProfilePage({ currentUser }) {
               </p>
             </div>
           )}
-  </div>
+        </div>
 
         {/* Skills Section */}
         {skillProgress.length > 0 && (
@@ -354,7 +384,7 @@ function ProfilePage({ currentUser }) {
           </div>
         )}
       </div>
-  </div>
+    </div>
   );
 }
 

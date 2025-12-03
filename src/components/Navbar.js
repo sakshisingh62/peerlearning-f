@@ -114,6 +114,7 @@ function Navbar({ currentUser, isOnline, onLogout }) {
                           `https://i.pravatar.cc/150?u=${currentUser?.userId}`
                     }
                     alt={currentUser.name}
+                    referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       if (isGoogleUser) {
